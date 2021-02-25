@@ -21,6 +21,7 @@ let package = Package(
             ])
     ],
     dependencies: [
+        .package(name: "MapboxCommon", url: "https://github.com/mapbox/mapbox-common-ios.git", from: "10.0.0-beta"),
         .package(name: "MapboxDirections", url: "https://github.com/mapbox/mapbox-directions-swift.git", .exact("2.0.0-alpha.1")),
         .package(name: "MapboxGeocoder", url: "https://github.com/mapbox/MapboxGeocoder.swift.git", from: "0.13.0"),
         .package(name: "MapboxMobileEvents", url: "https://github.com/mapbox/mapbox-events-ios.git", from: "0.12.0-alpha.1"),
@@ -41,7 +42,12 @@ let package = Package(
                 "MapboxNavigationNative",
             ],
             exclude: ["Info.plist"]),
-        .target(name: "CMapboxCoreNavigation"),
+        .target(
+            name: "CMapboxCoreNavigation",
+            dependencies: [
+                "MapboxCommon",
+            ]
+        ),
         .target(
             name: "MapboxNavigation",
             dependencies: [
