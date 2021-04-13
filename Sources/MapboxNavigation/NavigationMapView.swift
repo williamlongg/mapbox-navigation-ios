@@ -999,7 +999,7 @@ open class NavigationMapView: UIView {
         }
     }
 
-    private func updateIntersectionAnnotations(horizon: ElectronicHorizon, roadGraph: RoadGraph) {
+    private func updateIntersectionAnnotationSet(horizon: ElectronicHorizon, roadGraph: RoadGraph) {
 
         guard let currentWayname = horizon.start.edgeNames(roadGraph: roadGraph).first else { return }
 
@@ -1016,10 +1016,16 @@ open class NavigationMapView: UIView {
             // look through all the edges to filter out ones we don't want to consider
             // These are ones that lack a name, are very short, or are not on-screen
             let level1Edges = mppEdge.outletEdges.filter { outEdge -> Bool in
-                let nonMPP = outEdge.level != 0
+                // Criteria for accepting an edge as a candidate intersecting road
+                //  • Is not on the MPP
+                //  • Is a named road
+                //  • Is not the current road being travelled
+                //  • Is not a road already accepted (happens since there will be more than one outlet edge if a road continues through the current one)
+                //  • Is of a large enough road class
+                //  • Is of a non-trivial length in meters
+                //  • Intersection point is currently visible on screen
 
-                // omit the next MPP edge, road classes for small roads (service roads, etc.), and unnamed roads
-                guard nonMPP else { return false }
+                guard outEdge.level != 0 else { return false }
                 guard let edgeMetadata = roadGraph.edgeMetadata(edgeIdentifier: outEdge.identifier), let geometry = roadGraph.edgeShape(edgeIdentifier: mppEdge.identifier) else { return false }
 
                 let names = edgeMetadata.names.map { name -> String in
@@ -1032,26 +1038,26 @@ open class NavigationMapView: UIView {
                 }
 
                 guard let firstName = names.first, firstName != "" else {
-                    print("rejecting edge: for no name")
+                    // edge has no name
                     return false
                 }
                 guard firstName != currentWayname else {
-                    print("rejecting edge: for matching way: \(firstName)")
+                    // edge is for the currently travelled road
                     return false
                 }
 
                 guard !intersectingWaynames.contains(firstName) else {
-                    print("rejecting edge: \(firstName) as already present")
+                    // an edge for this road is already chosen
                     return false
                 }
 
                 guard ![MapboxStreetsRoadClass.service, MapboxStreetsRoadClass.ferry, MapboxStreetsRoadClass.path, MapboxStreetsRoadClass.majorRail, MapboxStreetsRoadClass.minorRail, MapboxStreetsRoadClass.serviceRail, MapboxStreetsRoadClass.aerialway, MapboxStreetsRoadClass.golf].contains(edgeMetadata.mapboxStreetsRoadClass) else {
-                    print("rejecting edge \(firstName) for roadclass: \(edgeMetadata.mapboxStreetsRoadClass) ")
+                    // edge is of type that we choose not to label
                     return false
                 }
 
                 guard edgeMetadata.length >= 5 else {
-                    print("rejecting edge: \(firstName) for short length")
+                    // edge is at least 5 meters long
                     return false
                 }
 
@@ -1059,22 +1065,23 @@ open class NavigationMapView: UIView {
 
                 let targetDistance = min(length / 2, Double.random(in: 15...30))
                 guard let annotationPoint = geometry.coordinateFromStart(distance: targetDistance) else {
-                    print("rejecting edge: \(firstName) for no annotationPoint")
+                    // unable to find a coordinate to label
                     return false
                 }
 
                 let onscreenPoint = self.mapView.point(for: annotationPoint, in: nil)
 
                 guard mapView.bounds.insetBy(dx: 20, dy: 20).contains(onscreenPoint) else {
-                    print("rejecting edge: \(firstName) for not being onscreen")
+                    // intersection coordinate is not visible on screen
                     return false
                 }
 
-                print("accepted edge: \(firstName) at: \(annotationPoint)")
+                // acceptable intersection to label
                 intersectingWaynames.append(firstName)
                 return true
             }
 
+            // record the edge information for use in creating the annotation Turf.Feature
             let rootMetadata: ElectronicHorizon.Edge.Metadata? = roadGraph.edgeMetadata(edgeIdentifier: mppEdge.identifier)
             let rootShape: LineString? = roadGraph.edgeShape(edgeIdentifier: mppEdge.identifier)
             for branch in level1Edges {
@@ -1085,6 +1092,7 @@ open class NavigationMapView: UIView {
                 intersections.append(EdgeIntersection(root: mppEdge, branch: branch, rootMetadata: rootMetadata, rootShape: rootShape, branchMetadata: branchInfo, branchShape: branchGeometry))
             }
         }
+
         // sort the edges by distance from the user
         if let userCoordinate = userLocationForCourseTracking?.coordinate {
             intersections.sort { (intersection1, intersection2) -> Bool in
@@ -1096,16 +1104,18 @@ open class NavigationMapView: UIView {
         }
 
         // form a set of the names of current intersections
+        // we will use this to check if any old intersections are no longer relevant or any additional ones have been picked
         let currentNames = intersections.compactMap { return $0.intersectingWayName }
         let currentNameSet = Set(currentNames)
 
-        // if the road set hasn't changed then we can just short-circuit out
+        // if the road name set hasn't changed then we can just short-circuit out
         guard previousNameSet != currentNameSet else { return }
 
-        // go ahead and update our list and figure out where on the map the annotations should be placed
+        // go ahead and update our list of currently labelled intersections
         previousNameSet = currentNameSet
 
-        intersectionsToAnnotate = intersections
+        // take up to 4 intersections to annotate. Limit it to prevent cluttering the map with too many annotations
+        intersectionsToAnnotate = Array(intersections.prefix(4))
     }
 
     var previousNameSet: Set<String>?
@@ -1147,7 +1157,7 @@ open class NavigationMapView: UIView {
 
             if labelText != "" {
                 var featurePoint: Feature
-                if let cachedEntry = cachedFeature(for: labelText) {
+                if let cachedEntry = cachedAnnotationFeature(for: labelText) {
                     featurePoint = cachedEntry.feature
                 } else {
                     featurePoint = Feature(Point(maneuverLocation))
@@ -1160,8 +1170,6 @@ open class NavigationMapView: UIView {
                     annotationCache?.setValue(feature: featurePoint, coordinate: maneuverLocation, intersection: nil, for: labelText)
                 }
                 features.append(featurePoint)
-            } else {
-                print("no label for maneuver")
             }
         }
 
@@ -1170,7 +1178,7 @@ open class NavigationMapView: UIView {
             guard let coordinate = intersection.annotationPoint else { continue }
             var featurePoint: Feature
 
-            if let intersectingWayName = intersection.intersectingWayName, let cachedEntry = cachedFeature(for: intersectingWayName) {
+            if let intersectingWayName = intersection.intersectingWayName, let cachedEntry = cachedAnnotationFeature(for: intersectingWayName) {
                 featurePoint = cachedEntry.feature
             } else {
                 featurePoint = Feature(Point(coordinate))
@@ -1189,7 +1197,7 @@ open class NavigationMapView: UIView {
             features.append(featurePoint)
         }
 
-        addAnnotationSymbolLayer(features: FeatureCollection(features: features))
+        updateAnnotationLayer(with: FeatureCollection(features: features))
     }
 
     private func addAnnotationSymbolImages() {
@@ -1272,7 +1280,7 @@ open class NavigationMapView: UIView {
     var annotationCache: AnnotationCache?
     static let intersectionAnnotations = "intersectionAnnotations"
 
-    private func cachedFeature(for labelText: String) -> AnnotationCacheEntry? {
+    private func cachedAnnotationFeature(for labelText: String) -> AnnotationCacheEntry? {
         if let existingFeature = annotationCache?.value(for: labelText) {
             // ensure the cached feature is still visible on-screen. If it is not then remove the entry and return nil
             let unprojectedCoordinate = self.mapView.point(for: existingFeature.coordinate, in: nil)
@@ -1286,7 +1294,7 @@ open class NavigationMapView: UIView {
         return nil
     }
 
-    private func addAnnotationSymbolLayer(features: FeatureCollection) {
+    private func updateAnnotationLayer(with features: FeatureCollection) {
         guard let style = mapView.style else { return }
         let existingDataSource = try? mapView.style.getSource(identifier: NavigationMapView.intersectionAnnotations, type: GeoJSONSource.self).get()
         if existingDataSource != nil {
@@ -1325,11 +1333,12 @@ open class NavigationMapView: UIView {
         shapeLayer.layout?.iconTextFit = .constant(.both)
         shapeLayer.layout?.iconAllowOverlap = .constant(true)
         shapeLayer.layout?.textAllowOverlap = .constant(true)
-        shapeLayer.layout?.textJustify = .constant(.left)
+        shapeLayer.layout?.textJustify = .constant(.center)
         shapeLayer.layout?.symbolZOrder = .constant(.auto)
         shapeLayer.layout?.textFont = .constant(["DIN Pro Medium"])
+        shapeLayer.layout?.iconTextFitPadding = .constant([-4, 0, -3, 0])
 
-        style.addLayer(layer: shapeLayer, layerPosition: nil)//LayerPosition(above: parentLayer))
+        style.addLayer(layer: shapeLayer, layerPosition: nil)
 
         let symbolSortKeyString =
         """
@@ -1401,7 +1410,7 @@ open class NavigationMapView: UIView {
         }
 
         DispatchQueue.main.async {
-            self.updateIntersectionAnnotations(horizon: horizon, roadGraph: roadGraph)
+            self.updateIntersectionAnnotationSet(horizon: horizon, roadGraph: roadGraph)
         }
     }
 
@@ -1423,168 +1432,5 @@ open class NavigationMapView: UIView {
             return ["\(metadata.mapboxStreetsRoadClass.rawValue)"]
         }
         return names
-    }
-}
-
-extension ElectronicHorizon.Edge {
-    var mpp: [ElectronicHorizon.Edge]? {
-
-        guard level == 0 else { return nil }
-
-        var mostProbablePath = [self]
-
-        for child in outletEdges {
-            if let childMPP = child.mpp {
-                mostProbablePath.append(contentsOf: childMPP)
-            }
-        }
-
-        return mostProbablePath
-    }
-}
-
-extension ElectronicHorizon.Edge {
-    func edgeNames(roadGraph: RoadGraph) -> [String] {
-        guard let metadata = roadGraph.edgeMetadata(edgeIdentifier: identifier) else {
-            return []
-        }
-        let names = metadata.names.map { name -> String in
-            switch name {
-            case .name(let name):
-                return name
-            case .code(let code):
-                return "(\(code))"
-            }
-        }
-
-        // If the road is unnamed, fall back to the road class.
-        if names.isEmpty {
-            return ["\(metadata.mapboxStreetsRoadClass.rawValue)"]
-        }
-        return names
-    }
-}
-
-struct EdgeIntersection {
-    var root: ElectronicHorizon.Edge
-    var branch: ElectronicHorizon.Edge
-    var rootMetadata: ElectronicHorizon.Edge.Metadata
-    var rootShape: LineString
-    var branchMetadata: ElectronicHorizon.Edge.Metadata
-    var branchShape: LineString
-
-    var coordinate: CLLocationCoordinate2D? {
-        rootShape.coordinates.first
-    }
-
-    var annotationPoint: CLLocationCoordinate2D? {
-        guard let length = branchShape.distance() else { return nil }
-        let targetDistance = min(length / 2, Double.random(in: 15...30))
-        guard let annotationPoint = branchShape.coordinateFromStart(distance: targetDistance) else { return nil }
-        return annotationPoint
-    }
-
-    var wayName: String? {
-        guard let roadName = rootMetadata.names.first else { return nil }
-
-        switch roadName {
-        case .name(let name):
-            return name
-        case .code(let code):
-            return "(\(code))"
-        }
-    }
-    var intersectingWayName: String? {
-        guard let roadName = branchMetadata.names.first else { return nil }
-
-        switch roadName {
-        case .name(let name):
-            return name
-        case .code(let code):
-            return "(\(code))"
-        }
-    }
-
-    var incidentAngle: CLLocationDegrees {
-        return (branchMetadata.heading - rootMetadata.heading).wrap(min: 0, max: 360)
-    }
-
-    var description: String {
-        return "EdgeIntersection: root: \(wayName ?? "") intersection: \(intersectingWayName ?? "") coordinate: \(String(describing: coordinate))"
-    }
-}
-
-private enum AnnotationTailPosition: Int {
-    case left
-    case right
-    case center
-}
-
-class AnnotationCacheEntry: Equatable, Hashable {
-    var wayname: String
-    var coordinate: CLLocationCoordinate2D
-    var intersection: EdgeIntersection?
-    var feature: Feature
-    var lastAccessTime: Date
-
-    init(coordinate: CLLocationCoordinate2D, wayname: String, intersection: EdgeIntersection? = nil, feature: Feature) {
-        self.wayname = wayname
-        self.coordinate = coordinate
-        self.intersection = intersection
-        self.feature = feature
-        self.lastAccessTime = Date()
-    }
-
-    static func == (lhs: AnnotationCacheEntry, rhs: AnnotationCacheEntry) -> Bool {
-        return lhs.wayname == rhs.wayname
-    }
-
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(wayname.hashValue)
-    }
-}
-
-class AnnotationCache {
-    private let maxEntryAge = TimeInterval(30)
-    var entries = Set<AnnotationCacheEntry>()
-    var cachePruningTimer: Timer?
-
-    init() {
-        // periodically prune the cache to remove entries that have been passed already
-        cachePruningTimer = Timer.scheduledTimer(withTimeInterval: 15, repeats: true, block: { [weak self] _ in
-            self?.prune()
-        })
-    }
-
-    deinit {
-        cachePruningTimer?.invalidate()
-        cachePruningTimer = nil
-    }
-
-    func setValue(feature: Feature, coordinate: CLLocationCoordinate2D, intersection: EdgeIntersection?, for wayname: String) {
-        entries.insert(AnnotationCacheEntry(coordinate: coordinate, wayname: wayname, intersection: intersection, feature: feature))
-    }
-
-    func value(for wayname: String) -> AnnotationCacheEntry? {
-        let matchingEntry = entries.first { entry -> Bool in
-            entry.wayname == wayname
-        }
-
-        if let matchingEntry = matchingEntry {
-            // update the timestamp used for pruning the cache
-            matchingEntry.lastAccessTime = Date()
-        }
-
-        return matchingEntry
-    }
-
-    private func prune() {
-        let now = Date()
-
-        entries.filter { now.timeIntervalSince($0.lastAccessTime) > maxEntryAge }.forEach { remove($0) }
-    }
-
-    public func remove(_ entry: AnnotationCacheEntry) {
-        entries.remove(entry)
     }
 }

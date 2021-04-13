@@ -397,6 +397,8 @@
 		DAFA92071F01735000A7FB09 /* DistanceFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 351BEC0B1E5BCC72006FE110 /* DistanceFormatter.swift */; };
 		F43EE329261F98DC0039D56F /* NavigationMapView+RoadAnnotations.swift in Sources */ = {isa = PBXBuildFile; fileRef = F43EE328261F98DC0039D56F /* NavigationMapView+RoadAnnotations.swift */; };
 		F43EE32A261F98DC0039D56F /* NavigationMapView+RoadAnnotations.swift in Sources */ = {isa = PBXBuildFile; fileRef = F43EE328261F98DC0039D56F /* NavigationMapView+RoadAnnotations.swift */; };
+		F488A0BE26261C4600A4CC8C /* NavigationMapView+IntersectionAnnotations.swift in Sources */ = {isa = PBXBuildFile; fileRef = F488A0BD26261C4600A4CC8C /* NavigationMapView+IntersectionAnnotations.swift */; };
+		F488A0C826261D8100A4CC8C /* ElectronicHorizon.swift in Sources */ = {isa = PBXBuildFile; fileRef = F488A0C726261D8100A4CC8C /* ElectronicHorizon.swift */; };
 		F4BF512E24EAD7A50066A49B /* FeedbackSubtypeCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4BF512D24EAD7A50066A49B /* FeedbackSubtypeCollectionViewCell.swift */; };
 		F4C5A26F24EF1D16004ED0DD /* FeedbackSubtypeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4C5A26E24EF1D16004ED0DD /* FeedbackSubtypeViewController.swift */; };
 /* End PBXBuildFile section */
@@ -1024,6 +1026,8 @@
 		DAFEB36E2093A3E000A86A83 /* ko */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ko; path = ko.lproj/Localizable.strings; sourceTree = "<group>"; };
 		DAFEB36F2093A3EF00A86A83 /* ko */ = {isa = PBXFileReference; lastKnownFileType = text.plist.stringsdict; name = ko; path = Resources/ko.lproj/Localizable.stringsdict; sourceTree = "<group>"; };
 		F43EE328261F98DC0039D56F /* NavigationMapView+RoadAnnotations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NavigationMapView+RoadAnnotations.swift"; sourceTree = "<group>"; };
+		F488A0BD26261C4600A4CC8C /* NavigationMapView+IntersectionAnnotations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NavigationMapView+IntersectionAnnotations.swift"; sourceTree = "<group>"; };
+		F488A0C726261D8100A4CC8C /* ElectronicHorizon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ElectronicHorizon.swift; sourceTree = "<group>"; };
 		F4BF512D24EAD7A50066A49B /* FeedbackSubtypeCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedbackSubtypeCollectionViewCell.swift; sourceTree = "<group>"; };
 		F4C5A26E24EF1D16004ED0DD /* FeedbackSubtypeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedbackSubtypeViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -1662,6 +1666,8 @@
 				8AE9081125FAA53300F37077 /* Collection.swift */,
 				8A8C3D97260175D20071D274 /* CLLocationDirection.swift */,
 				8A446644260A7B24008BA55E /* BoundingBox.swift */,
+				F488A0BD26261C4600A4CC8C /* NavigationMapView+IntersectionAnnotations.swift */,
+				F488A0C726261D8100A4CC8C /* ElectronicHorizon.swift */,
 			);
 			name = Extensions;
 			sourceTree = "<group>";
@@ -2559,6 +2565,7 @@
 				8DEDEF3421E3FBE80049E114 /* NavigationViewControllerDelegate.swift in Sources */,
 				8A446645260A7B24008BA55E /* BoundingBox.swift in Sources */,
 				8AD866F625CA1BF10019A638 /* NavigationCamera.swift in Sources */,
+				F488A0C826261D8100A4CC8C /* ElectronicHorizon.swift in Sources */,
 				8D5DFFF1207C04840093765A /* NSAttributedString.swift in Sources */,
 				35CF34B11F0A733200C2692E /* UIFont.swift in Sources */,
 				8AD866F925CA1BF10019A638 /* ViewportDataSource.swift in Sources */,
@@ -2583,6 +2590,7 @@
 				160D8279205996DA00D278D6 /* DataCache.swift in Sources */,
 				8AFF437125F847340053CBB1 /* CameraOptions.swift in Sources */,
 				351BEBF21E5BCC63006FE110 /* Style.swift in Sources */,
+				F488A0BE26261C4600A4CC8C /* NavigationMapView+IntersectionAnnotations.swift in Sources */,
 				43FB386923A202420064481E /* Route.swift in Sources */,
 				3EA937B1F4DF73EB004BA6BE /* InstructionPresenter.swift in Sources */,
 				5A1C075824BDEB44000A6330 /* PassiveLocationManager.swift in Sources */,
