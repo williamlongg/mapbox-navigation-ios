@@ -169,6 +169,7 @@ open class DayStyle: Style {
         NavigationMapView.appearance().alternativeTrafficUnknownColor = .alternativeTrafficUnknown
         NavigationMapView.appearance().buildingDefaultColor = .defaultBuildingColor
         NavigationMapView.appearance().buildingHighlightColor = .defaultBuildingHighlightColor
+        NavigationMapView.appearance().intersectionAnnotationFontNames = ["DIN Pro Medium", "Noto Sans CJK JP Medium", "Arial Unicode MS Regular"]
         NavigationView.appearance().backgroundColor = #colorLiteral(red: 0.764706, green: 0.752941, blue: 0.733333, alpha: 1)
         NextBannerView.appearance().backgroundColor = #colorLiteral(red: 0.9675388083, green: 0.9675388083, blue: 0.9675388083, alpha: 1)
         NextBannerView.appearance(whenContainedInInstancesOf:[InstructionsCardContainerView.self]).backgroundColor = #colorLiteral(red: 0.9675388083, green: 0.9675388083, blue: 0.9675388083, alpha: 1)
