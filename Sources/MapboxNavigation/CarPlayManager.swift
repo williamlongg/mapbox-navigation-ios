@@ -506,7 +506,7 @@ extension CarPlayManager {
     }
     
     func calculate(_ options: RouteOptions, completionHandler: @escaping Directions.RouteCompletionHandler) {
-        directions.calculateWithCache(options: options, completionHandler: completionHandler)
+        NavigationRouter().requestRoutes(options: options, completionHandler: completionHandler)
     }
     
     func didCalculate(_ result: Result<RouteResponse, DirectionsError>,

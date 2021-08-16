@@ -26,6 +26,16 @@ public struct IndexedRouteResponse {
     public let routeIndex: Int
     
     /**
+     Returns a route from the `routeResponse` under given `routeIndex` if possible.
+     */
+    public var selectedRoute: Route? {
+        guard routeResponse.routes?.count ?? 0 > routeIndex else {
+            return nil
+        }
+        return routeResponse.routes?[routeIndex]
+    }
+    
+    /**
      Initializes a new `IndexedRouteResponse` object.
      
      - parameter routeResponse: `RouteResponse` object, containing routes and other related info.
@@ -142,7 +152,7 @@ protocol InternalRouter: AnyObject {
     
     var lastRouteRefresh: Date? { get set }
     
-    var routeTask: URLSessionDataTask? { get set }
+    var routeTask: NavigationRouter.RoutingRequest? { get set }
     
     var didFindFasterRoute: Bool { get set }
     
@@ -166,41 +176,42 @@ extension InternalRouter where Self: Router {
     func refreshAndCheckForFasterRoute(from location: CLLocation, routeProgress: RouteProgress) {
         if refreshesRoute {
             refreshRoute(from: location, legIndex: routeProgress.legIndex) {
-                self.checkForFasterRoute(from: location, routeProgress: routeProgress)
+                self.checkForFasterRoute(from: location, routeProgress: routeProgress, router: $0)
             }
         } else {
             checkForFasterRoute(from: location, routeProgress: routeProgress)
         }
     }
     
-    func refreshRoute(from location: CLLocation, legIndex: Int, completion: @escaping ()->()) {
-        guard refreshesRoute, let routeIdentifier = indexedRouteResponse.routeResponse.identifier else {
-            completion()
+    func refreshRoute(from location: CLLocation, legIndex: Int, completion: @escaping (NavigationRouter?)->()) {
+        guard refreshesRoute else {
+            completion(nil)
             return
         }
         
         guard let lastRouteRefresh = lastRouteRefresh else {
             self.lastRouteRefresh = location.timestamp
-            completion()
+            completion(nil)
             return
         }
         
         guard location.timestamp.timeIntervalSince(lastRouteRefresh) >= RouteControllerProactiveReroutingInterval else {
-            completion()
+            completion(nil)
             return
         }
         
         if isRefreshing {
-            completion()
+            completion(nil)
             return
         }
         isRefreshing = true
-        
-        directions.refreshRoute(responseIdentifier: routeIdentifier, routeIndex: indexedRouteResponse.routeIndex, fromLegAtIndex: legIndex) { [weak self] (session, result) in
+        let router = NavigationRouter()
+        router.refreshRoute(indexedRouteResponse: indexedRouteResponse,
+                                                    fromLegAtIndex: UInt32(legIndex)) { [weak self, weak router] session, result in
             defer {
                 self?.isRefreshing = false
                 self?.lastRouteRefresh = nil
-                completion()
+                completion(router)
             }
             
             guard case let .success(response) = result, let self = self else {
@@ -216,7 +227,7 @@ extension InternalRouter where Self: Router {
         }
     }
     
-    func checkForFasterRoute(from location: CLLocation, routeProgress: RouteProgress) {
+    func checkForFasterRoute(from location: CLLocation, routeProgress: RouteProgress, router: NavigationRouter? = nil) {
         // Check for faster route given users current location
         guard reroutesProactively else { return }
         
@@ -245,7 +256,7 @@ extension InternalRouter where Self: Router {
         if isRerouting { return }
         isRerouting = true
         
-        getDirections(from: location, along: routeProgress) { [weak self] (session, result) in
+        getDirections(from: location, along: routeProgress, router: router) { [weak self] (session, result) in
             self?.isRerouting = false
             
             guard case let .success(response) = result else {
@@ -274,14 +285,15 @@ extension InternalRouter where Self: Router {
         }
     }
     
-    func getDirections(from location: CLLocation, along progress: RouteProgress, completion: @escaping Directions.RouteCompletionHandler) {
+    func getDirections(from location: CLLocation, along progress: RouteProgress, router: NavigationRouter? = nil, completion: @escaping Directions.RouteCompletionHandler) {
         routeTask?.cancel()
         let options = progress.reroutingOptions(with: location)
         
         lastRerouteLocation = location
         
-        routeTask = directions.calculateWithCache(options: options) {(session, result) in
-            
+        let router = router ?? NavigationRouter()
+        let taskId = router.requestRoutes(options: options) {(session, result) in
+            defer { self.routeTask = nil }
             guard case let .success(response) = result else {
                 return completion(session, result)
             }
@@ -296,6 +308,7 @@ extension InternalRouter where Self: Router {
             
             return completion(session, .success(modifiedResponse))
         }
+        routeTask = router.activeRequests[taskId]
     }
     
     func setRoute(_ route: Route, proactive: Bool, routeOptions: RouteOptions?) {

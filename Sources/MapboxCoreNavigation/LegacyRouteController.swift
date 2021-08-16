@@ -74,7 +74,7 @@ open class LegacyRouteController: NSObject, Router, InternalRouter, CLLocationMa
     var isRefreshing = false
     var lastRerouteLocation: CLLocation?
 
-    var routeTask: URLSessionDataTask?
+    var routeTask: NavigationRouter.RoutingRequest?
     var lastLocationDate: Date?
 
     var hasFoundOneQualifiedLocation = false

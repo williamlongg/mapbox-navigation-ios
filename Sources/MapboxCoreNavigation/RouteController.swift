@@ -56,7 +56,7 @@ open class RouteController: NSObject {
         }
     }
     
-    var routeTask: URLSessionDataTask?
+    var routeTask: NavigationRouter.RoutingRequest?
     
     var lastRerouteLocation: CLLocation?
     
