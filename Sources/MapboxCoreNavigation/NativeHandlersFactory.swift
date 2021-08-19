@@ -48,9 +48,9 @@ class NativeHandlersFactory {
     }()
     
     lazy var cacheHandle: CacheHandle = {
-        CacheFactory.build(for: tilesConfig,
-                           config: configHandle,
-                           historyRecorder: historyRecorder)
+        CacheHandlerFactory.getHandler(for: tilesConfig,
+                                       config: configHandle,
+                                       historyRecorder: historyRecorder)
     }()
     
     lazy var roadGraph: RoadGraph = {
