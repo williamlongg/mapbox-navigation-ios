@@ -1,7 +1,7 @@
 
 import MapboxNavigationNative
 
-struct CacheHandlerFactory {
+enum CacheHandlerFactory {
     
     private static var key: (TilesConfig, ConfigHandle, HistoryRecorderHandle?)? = nil
     private static var cachedHandle: CacheHandle!

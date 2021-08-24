@@ -217,8 +217,8 @@ extension InternalRouter where Self: Router {
             guard case let .success(response) = result, let self = self else {
                 return
             }
-            
-            self.routeProgress.refreshRoute(with: response.route, at: location)
+            self.indexedRouteResponse = .init(routeResponse: response, routeIndex: self.indexedRouteResponse.routeIndex)
+            self.routeProgress.refreshRoute(with: self.indexedRouteResponse.selectedRoute!, at: location)
             
             var userInfo = [RouteController.NotificationUserInfoKey: Any]()
             userInfo[.routeProgressKey] = self.routeProgress
