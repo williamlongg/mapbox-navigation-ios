@@ -572,6 +572,8 @@ extension RouteController: Router {
         // Avoid interrupting an ongoing reroute
         if isRerouting { return }
         isRerouting = true
+
+        print("RouteController \(self): requested reroute. delegate \(delegate)")
         
         getDirections(from: location, along: progress) { [weak self] (session, result) in
             self?.isRerouting = false
@@ -583,6 +585,7 @@ extension RouteController: Router {
             switch result {
             case let .success(response):
                 guard let route = response.routes?.first else { return }
+                print("RouteController \(strongSelf): received reroute. delegate: \(strongSelf.delegate). legs: \(route.legs)")
                 guard case let .route(routeOptions) = response.options else { return } //TODO: Can a match hit this codepoint?
                 strongSelf._routeProgress = RouteProgress(route: route, options: routeOptions, legIndex: 0)
                 strongSelf._routeProgress.currentLegProgress.stepIndex = 0
