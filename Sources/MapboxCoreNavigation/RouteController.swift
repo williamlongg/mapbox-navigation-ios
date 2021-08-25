@@ -153,6 +153,7 @@ open class RouteController: NSObject {
         UIDevice.current.isBatteryMonitoringEnabled = true
         
         super.init()
+        print("RouteController: \(self) created")
         
         subscribeNotifications()
         updateNavigator(with: _routeProgress)
