@@ -51,10 +51,6 @@ public class NavigationRouter {
                                                                  historyRecorder: factory.historyRecorder)
     }
     
-    deinit {
-        print(">>> dealloc")
-    }
-    
     fileprivate func finish(request id: RequestId) {
         requestsLock.lock(); defer {
             requestsLock.unlock()
@@ -62,7 +58,6 @@ public class NavigationRouter {
         
         router.cancelRequest(forToken: id)
         activeRequests[id] = nil
-        print(">>> finished id: \(id)")
     }
     
     func complete(requestId: RequestId, with result: @escaping () -> Void) {
@@ -104,7 +99,6 @@ public class NavigationRouter {
         activeRequests[requestId] = .init(id: requestId,
                                           router: self)
         requestsLock.unlock()
-        print(">>> started id: \(requestId)")
         return requestId
     }
     
@@ -189,7 +183,6 @@ public class NavigationRouter {
         activeRequests[requestId] = .init(id: requestId,
                                           router: self)
         requestsLock.unlock()
-        print(">>> started refresh id: \(requestId)")
         return requestId
     }
 }

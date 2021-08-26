@@ -56,11 +56,11 @@ open class LegacyRouteController: NSObject, Router, InternalRouter, CLLocationMa
     }
 
     public func updateRoute(with indexedRouteResponse: IndexedRouteResponse, routeOptions: RouteOptions?) {
-        guard let routes = indexedRouteResponse.routeResponse.routes, routes.count > indexedRouteResponse.routeIndex else {
+        guard let route = indexedRouteResponse.selectedRoute else {
             preconditionFailure("`indexedRouteResponse` does not contain route for index `\(indexedRouteResponse.routeIndex)` when updating route.")
         }
         let routeOptions = routeOptions ?? routeProgress.routeOptions
-        routeProgress = RouteProgress(route: routes[indexedRouteResponse.routeIndex], options: routeOptions)
+        routeProgress = RouteProgress(route: route, options: routeOptions)
         self.indexedRouteResponse = indexedRouteResponse
     }
     

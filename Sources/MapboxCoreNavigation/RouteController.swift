@@ -611,11 +611,9 @@ extension RouteController: Router {
     }
 
     public func updateRoute(with indexedRouteResponse: IndexedRouteResponse, routeOptions: RouteOptions?) {
-        guard let routes = indexedRouteResponse.routeResponse.routes,
-              routes.count > indexedRouteResponse.routeIndex else {
+        guard let route = indexedRouteResponse.selectedRoute else {
             preconditionFailure("`indexedRouteResponse` does not contain route for index `\(indexedRouteResponse.routeIndex)` when updating route.")
         }
-        let route = routes[indexedRouteResponse.routeIndex]
         if shouldStartNewBillingSession(for: route, routeOptions: routeOptions) {
             BillingHandler.shared.stopBillingSession(with: sessionUUID)
             BillingHandler.shared.beginBillingSession(for: .activeGuidance, uuid: sessionUUID)
