@@ -140,9 +140,9 @@ open class RouteController: NSObject {
     public unowned var dataSource: RouterDataSource
     
     /**
-     The Directions object used to create the route.
+     Routing source type used to create the route.
      */
-    public var directions: Directions
+    public var routingSource: NavigationRouter.RouterSource
     
     /**
      The idealized user location. Snapped to the route line, if applicable, otherwise raw.
@@ -152,8 +152,8 @@ open class RouteController: NSObject {
         return snappedLocation ?? rawLocation
     }
     
-    required public init(alongRouteAtIndex routeIndex: Int, in routeResponse: RouteResponse, options: RouteOptions, directions: Directions = NavigationSettings.shared.directions, dataSource source: RouterDataSource) {
-        self.directions = directions
+    required public init(alongRouteAtIndex routeIndex: Int, in routeResponse: RouteResponse, options: RouteOptions, routingSource: NavigationRouter.RouterSource = .hybrid, dataSource source: RouterDataSource) {
+        self.routingSource = routingSource
         self.indexedRouteResponse = .init(routeResponse: routeResponse, routeIndex: routeIndex)
         self._routeProgress = RouteProgress(route: routeResponse.routes![routeIndex], options: options)
         self.dataSource = source

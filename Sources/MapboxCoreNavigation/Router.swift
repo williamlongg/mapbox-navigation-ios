@@ -68,10 +68,10 @@ public protocol Router: CLLocationManagerDelegate {
      
      - parameter routeIndex: The index of the route within the original `RouteResponse` object.
      - parameter routeResponse: `RouteResponse` object, containing selection of routes to follow.
-     - parameter directions: The Directions object that created `route`.
+     - parameter routingSource: `NavigationRouter` source type, used to create route.
      - parameter source: The data source for the RouteController.
      */
-    init(alongRouteAtIndex routeIndex: Int, in routeResponse: RouteResponse, options: RouteOptions, directions: Directions, dataSource source: RouterDataSource)
+    init(alongRouteAtIndex routeIndex: Int, in routeResponse: RouteResponse, options: RouteOptions, routingSource: NavigationRouter.RouterSource, dataSource source: RouterDataSource)
     
     /**
      Details about the user’s progress along the current route, leg, and step.
@@ -164,7 +164,7 @@ protocol InternalRouter: AnyObject {
     
     var isRefreshing: Bool { get set }
     
-    var directions: Directions { get }
+    var routingSource: NavigationRouter.RouterSource { get }
     
     var routeProgress: RouteProgress { get set }
     
@@ -205,7 +205,7 @@ extension InternalRouter where Self: Router {
             return
         }
         isRefreshing = true
-        let router = NavigationRouter()
+        let router = NavigationRouter(self.routingSource)
         router.refreshRoute(indexedRouteResponse: indexedRouteResponse,
                                                     fromLegAtIndex: UInt32(legIndex)) { [weak self, weak router] session, result in
             defer {
@@ -291,7 +291,7 @@ extension InternalRouter where Self: Router {
         
         lastRerouteLocation = location
         
-        let router = router ?? NavigationRouter()
+        let router = router ?? NavigationRouter(self.routingSource)
         let taskId = router.requestRoutes(options: options) {(session, result) in
             defer { self.routeTask = nil }
             guard case let .success(response) = result else {

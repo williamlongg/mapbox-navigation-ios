@@ -16,9 +16,9 @@ open class LegacyRouteController: NSObject, Router, InternalRouter, CLLocationMa
     public unowned var dataSource: RouterDataSource
     
     /**
-     The Directions object used to create the route.
+     Routing source type used to create the route.
      */
-    public var directions: Directions
+    public var routingSource: NavigationRouter.RouterSource
 
     /**
      The threshold used when we determine when the user has arrived at the waypoint.
@@ -89,8 +89,8 @@ open class LegacyRouteController: NSObject, Router, InternalRouter, CLLocationMa
 
     private let sessionUUID: UUID = .init()
     
-    required public init(alongRouteAtIndex routeIndex: Int, in routeResponse: RouteResponse, options: RouteOptions, directions: Directions = NavigationSettings.shared.directions, dataSource source: RouterDataSource) {
-        self.directions = directions
+    required public init(alongRouteAtIndex routeIndex: Int, in routeResponse: RouteResponse, options: RouteOptions, routingSource: NavigationRouter.RouterSource = .hybrid, dataSource source: RouterDataSource) {
+        self.routingSource = routingSource
         self.indexedRouteResponse = .init(routeResponse: routeResponse, routeIndex: routeIndex)
         self._routeProgress = RouteProgress(route: routeResponse.routes![routeIndex], options: options)
         self.dataSource = source
