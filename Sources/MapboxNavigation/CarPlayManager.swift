@@ -67,12 +67,6 @@ public class CarPlayManager: NSObject {
      CarPlay.
      */
     public let eventsManager: NavigationEventsManager
-    
-    /**
-     The object that calculates routes when the user interacts with the CarPlay
-     interface.
-     */
-    public let directions: Directions
 
     /**
      The styles displayed in the CarPlay interface.
@@ -186,25 +180,19 @@ public class CarPlayManager: NSObject {
      Initializes a new CarPlay manager that manages a connection to the CarPlay interface.
      
      - parameter styles: The styles to display in the CarPlay interface. If this argument is omitted, `DayStyle` and `NightStyle` are displayed by default.
-     - parameter directions: The object that calculates routes when the user interacts with the CarPlay interface. If this argument is `nil` or omitted, the shared `Directions` object is used by default.
      - parameter eventsManager: The events manager to use during turn-by-turn navigation while connected to CarPlay. If this argument is `nil` or omitted, a standard `NavigationEventsManager` object is used by default.
      */
     public convenience init(styles: [Style]? = nil,
-                            directions: Directions? = nil,
                             eventsManager: NavigationEventsManager? = nil) {
         self.init(styles: styles,
-                  directions: directions,
                   eventsManager: eventsManager,
                   carPlayNavigationViewControllerClass: nil)
     }
     
     init(styles: [Style]? = nil,
-         directions: Directions? = nil,
          eventsManager: NavigationEventsManager? = nil,
          carPlayNavigationViewControllerClass: CarPlayNavigationViewController.Type? = nil) {
         self.styles = styles ?? [DayStyle(), NightStyle()]
-        let mapboxDirections = directions ?? NavigationSettings.shared.directions
-        self.directions = mapboxDirections
         self.eventsManager = eventsManager ?? .init(activeNavigationDataSource: nil,
                                                     accessToken: NavigationSettings.shared.directions.credentials.accessToken)
         self.mapTemplateProvider = MapTemplateProvider()

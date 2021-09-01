@@ -173,6 +173,7 @@ open class RouteController: NSObject {
         
         resetObservation(for: _routeProgress)
         unsubscribeNotifications()
+        routeTask?.cancel()
     }
     
     func resetObservation(for progress: RouteProgress) {

@@ -1,4 +1,3 @@
-import Foundation
 @_implementationOnly import MapboxCommon_Private
 import MapboxDirections
 import MapboxNavigationNative
@@ -73,6 +72,8 @@ public class NavigationRouter {
         }
     }
     
+    static var __testRoutesStub: ((_: RouteOptions, _: @escaping Directions.RouteCompletionHandler) -> RequestId)? = nil
+    
     // MARK: - Properties
     /**
      List of ongoing tasks for the router.
@@ -123,12 +124,13 @@ public class NavigationRouter {
      */
     @discardableResult public func requestRoutes(options: RouteOptions,
                                                  completionHandler: @escaping Directions.RouteCompletionHandler) -> RequestId {
-        return doRequest(options: options) { [weak self] (result: Result<RouteResponse, DirectionsError>) in
-            guard let self = self else { return }
-            let session = (options: options as DirectionsOptions,
-                           credentials: self.settings.directions.credentials)
-            completionHandler(session, result)
-        }
+        return Self.__testRoutesStub?(options, completionHandler) ??
+            doRequest(options: options) { [weak self] (result: Result<RouteResponse, DirectionsError>) in
+                guard let self = self else { return }
+                let session = (options: options as DirectionsOptions,
+                               credentials: self.settings.directions.credentials)
+                completionHandler(session, result)
+            }
     }
     
     /**
@@ -222,6 +224,16 @@ public class NavigationRouter {
         }
     }
 
+    struct ResponseDisposition: Decodable {
+        var code: String?
+        var message: String?
+        var error: String?
+        
+        private enum CodingKeys: CodingKey {
+            case code, message, error
+        }
+    }
+    
     fileprivate func parseResponse<ResponseType: Codable>(requestId: RequestId, userInfo: [CodingUserInfoKey : Any], result: Expected<AnyObject, AnyObject>, completion: @escaping (Result<ResponseType, DirectionsError>) -> Void) {
         do {
             let json = result.value as? String
@@ -231,8 +243,33 @@ public class NavigationRouter {
                 }
                 return
             }
+            
             let decoder = JSONDecoder()
             decoder.userInfo = userInfo
+            
+            guard let disposition = try? decoder.decode(ResponseDisposition.self, from: data) else {
+                let apiError = DirectionsError(code: nil,
+                                               message: nil,
+                                               response: nil,
+                                               underlyingError: result.error as? Error)
+
+                self.complete(requestId: requestId) {
+                    completion(.failure(apiError))
+                }
+                return
+            }
+            
+            guard (disposition.code == nil && disposition.message == nil) || disposition.code == "Ok" else {
+                let apiError = DirectionsError(code: disposition.code,
+                                               message: disposition.message,
+                                               response: nil,
+                                               underlyingError: result.error as? Error)
+
+                self.complete(requestId: requestId) {
+                    completion(.failure(apiError))
+                }
+                return
+            }
             
             let result = try decoder.decode(ResponseType.self, from: data)
             

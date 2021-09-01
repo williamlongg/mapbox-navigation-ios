@@ -15,6 +15,7 @@ class RouteControllerTests: TestCase {
 
     override func tearDown() {
         replayManager = nil
+        NavigationRouter.__testRoutesStub = nil
         super.tearDown()
     }
     
@@ -80,13 +81,11 @@ class RouteControllerTests: TestCase {
         }.shiftedToPresent()
 
 
-        let directions = DirectionsSpy()
-
         let navOptions = NavigationRouteOptions(matchOptions: .init(coordinates: routeCoordinates))
         let routeController = RouteController(alongRouteAtIndex: 0,
                                               in: routeResponse,
                                               options: navOptions,
-                                              directions: directions,
+                                              routingSource: .offline,
                                               dataSource: self)
 
         let routerDelegateSpy = RouterDelegateSpy()
@@ -113,13 +112,18 @@ class RouteControllerTests: TestCase {
         routerDelegateSpy.onDidRerouteAlong = { _ in
             rerouted.fulfill()
         }
-        directions.onCalculateRoute = { [unowned directions] in
+        NavigationRouter.__testRoutesStub = { (options, completionHandler) in
             calculateRouteCalled.fulfill()
             let currentCoordinate = locationManager.location!.coordinate
-            directions.fireLastCalculateCompletion(with: [],
-                                                   routes: [Fixture.route(between: currentCoordinate,
-                                                                          and: destination).route],
-                                                   error: nil)
+            completionHandler(Directions.Session(options, DirectionsCredentials()),
+                              .success(RouteResponse(httpResponse: nil,
+                                                     identifier: nil,
+                                                     routes: [Fixture.route(between: currentCoordinate,
+                                                                            and: destination).route],
+                                                     waypoints: nil,
+                                                     options: .route(options),
+                                                     credentials: .mocked)))
+            return 0
         }
 
         let speedMultiplier: TimeInterval = 100

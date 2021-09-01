@@ -292,8 +292,8 @@ extension InternalRouter where Self: Router {
         lastRerouteLocation = location
         
         let router = router ?? NavigationRouter(self.routingSource)
-        let taskId = router.requestRoutes(options: options) {(session, result) in
-            defer { self.routeTask = nil }
+        let taskId = router.requestRoutes(options: options) {[weak self] (session, result) in
+            defer { self?.routeTask = nil }
             guard case let .success(response) = result else {
                 return completion(session, result)
             }
