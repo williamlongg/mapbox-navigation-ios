@@ -307,17 +307,6 @@ public class NavigationRouter {
 
 extension DirectionsProfileIdentifier {
     var nativeProfile: RoutingProfile {
-        switch self {
-        case .automobile:
-            return .driving
-        case .automobileAvoidingTraffic:
-            return .drivingTraffic
-        case .cycling:
-            return .cycling
-        case .walking:
-            return .walking
-        default:
-            return .driving
-        }
+        return RoutingProfile(profile: rawValue)
     }
 }
