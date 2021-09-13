@@ -5,7 +5,7 @@ import CoreLocation
  `NavigationViewportDataSource` in `NavigationCameraState.following` state.
  */
 public struct FollowingCameraOptions: Equatable {
-    
+
     /**
      Pitch, which will be taken into account when preparing `CameraOptions` during active guidance
      navigation.
@@ -70,7 +70,7 @@ public struct FollowingCameraOptions: Equatable {
      
      Defaults to `true`.
      */
-    public var zoomUpdatesAllowed = true
+    public var zoomUpdatesAllowed: Bool = true
     
     /**
      If `true`, `NavigationViewportDataSource` will continuously modify `CameraOptions.bearing` property
@@ -80,7 +80,7 @@ public struct FollowingCameraOptions: Equatable {
      
      Defaults to `true`.
      */
-    public var bearingUpdatesAllowed = true
+    public var bearingUpdatesAllowed: Bool = true
     
     /**
      If `true`, `NavigationViewportDataSource` will continuously modify `CameraOptions.pitch` property
@@ -90,7 +90,7 @@ public struct FollowingCameraOptions: Equatable {
      
      Defaults to `true`.
      */
-    public var pitchUpdatesAllowed = true
+    public var pitchUpdatesAllowed: Bool = true
     
     /**
      If `true`, `NavigationViewportDataSource` will continuously modify `CameraOptions.padding` property
@@ -100,7 +100,7 @@ public struct FollowingCameraOptions: Equatable {
      
      Defaults to `true`.
      */
-    public var paddingUpdatesAllowed = true
+    public var paddingUpdatesAllowed: Bool = true
     
     /**
      Options, which allow to modify the framed route geometries based on the intersection density.
@@ -208,7 +208,7 @@ public struct BearingSmoothing: Equatable {
      
      Defaults to `true`.
      */
-    public var enabled = true
+    public var enabled: Bool = true
     
     /**
      Controls how much the bearing can deviate from the location's bearing, in degrees.
@@ -287,7 +287,7 @@ public struct PitchNearManeuver: Equatable {
      
      Defaults to `true`.
      */
-    public var enabled = true
+    public var enabled: Bool = true
     
     /**
      Threshold distance to the upcoming maneuver.
