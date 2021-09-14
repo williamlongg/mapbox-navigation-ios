@@ -177,6 +177,7 @@
 * Fixed an issue when road label resolving during the active navigation was consuming too much CPU and might lead to crashes. ([#3340](https://github.com/mapbox/mapbox-navigation-ios/pull/3340))
 * Feedback categories and subcategories for active navigation were changed. "Incorrect visual" category was renamed to "Looks Incorrect". For the full updated list of supported categories see enum `ActiveNavigationFeedbackType`. ([#3339]((https://github.com/mapbox/mapbox-navigation-ios/pull/3339))
 * Fixed bundle names retrieval in `URLSession.userAgent`. ([#3335]((https://github.com/mapbox/mapbox-navigation-ios/pull/3335))
+* Replaced `Directions.calculateWithCache(options:completionHandler:)` and `Directions.calculateOffline(options:completionHandler)` functionality with `NavigationRouter`. It is now recommended to use `NavigationRouter` to request or refresh routes instead of `Directions` object. ([#3261](https://github.com/mapbox/mapbox-navigation-ios/pull/3261))
 * Fixed IndexedRouteResponse handling after rerouting. ([#3344]((https://github.com/mapbox/mapbox-navigation-ios/pull/3344))
 
 ## v1.4.1
