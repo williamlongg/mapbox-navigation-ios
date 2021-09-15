@@ -53,6 +53,8 @@ let package = Package(
                 "MapboxMaps",
                 "MapboxSpeech",
                 "Solar",
+                "Polyline",
+                "Turf"
             ],
             exclude: ["Info.plist"],
             resources: [.copy("MBXInfo.plist")]),
