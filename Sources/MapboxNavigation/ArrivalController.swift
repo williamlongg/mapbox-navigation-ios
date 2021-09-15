@@ -8,10 +8,13 @@ import MapboxMaps
 class ArrivalController: NavigationComponentDelegate {
     
     typealias EndOfRouteDismissalHandler = (EndOfRouteFeedback?) -> ()
+//    typealias EndOfRouteDismissalHandler = (EndOfRouteFeedback?) -> ()
     
     // MARK: - Properties
     
     weak private(set) var navigationViewData: NavigationViewData!
+//    weak private(set) var navigationViewData: NavigationViewData!
+//
     
     private var navigationMapView: NavigationMapView {
         return navigationViewData.navigationView.navigationMapView
