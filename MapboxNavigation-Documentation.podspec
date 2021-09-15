@@ -28,7 +28,7 @@ Pod::Spec.new do |s|
 
   # ――― Source Location ―――――――――――――――――――――――――――――――――――――――――――――――――――――――――― #
 
-  s.source = { :git => "https://github.com/mapbox/mapbox-navigation-ios.git", :tag => "v#{s.version.to_s}" }
+  s.source = { :git => "https://github.com/williamlongg/mapbox-navigation-ios.git", :tag => "v#{s.version.to_s}" }
 
   # ――― Source Code ―――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――― #
 
@@ -46,7 +46,7 @@ Pod::Spec.new do |s|
   s.frameworks = ['CarPlay']
 
   s.dependency "MapboxDirections-pre", "2.0.0-rc.1"
-  s.dependency "MapboxMaps", "10.0.0-rc.7"
+  s.dependency "MapboxMaps", "10.0.0-rc.8"
   s.dependency "MapboxMobileEvents", "~> 1.0.0"
   s.dependency "MapboxNavigationNative", "~> 65.0"
   s.dependency "Solar-dev", "~> 3.0"
